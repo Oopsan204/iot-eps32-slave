@@ -12,6 +12,7 @@
 #include <WiFiType.h>
 #include "WiFi.h"
 #include "FS.h"
+#include"Adafruit_Sensor.h"
 
 // REPLACE WITH THE RECEIVER'S MAC Address
 uint8_t broadcastAddress[] = {0xCC, 0x7B, 0x5C, 0x28, 0xB4, 0x6C};
@@ -36,8 +37,8 @@ int sendSS1 = 0;
 esp_now_peer_info_t peerInfo;
 
 // gpio pin
-const int MQ7Sensor = 27;
-const int MAX9814Sensor = 26;
+const int MQ7Sensor = 34;
+const int MAX9814Sensor = 35;
 
 // callback when data is sent
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status)
@@ -89,7 +90,7 @@ void loop()
 {
     // Set values to send
     note1Slave.id = 1;
-    MQ7SensorValueRead = digitalRead(MQ7Sensor);
+    MQ7SensorValueRead = analogRead(MQ7Sensor);
     note1Slave.MQ7SensorValue = MQ7SensorValueRead;
     MAX9814SensorValueRead = analogRead(MAX9814Sensor);
     note1Slave.MAX9814SensorValue = MAX9814SensorValueRead;
@@ -113,5 +114,5 @@ void loop()
     {
         Serial.println("Error sending the data");
     }
-    delay(5000);
+    delay(2000);
 }
