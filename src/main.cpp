@@ -15,7 +15,7 @@
 #include"Adafruit_Sensor.h"
 
 // REPLACE WITH THE RECEIVER'S MAC Address
-uint8_t broadcastAddress[] = {0xCC, 0x7B, 0x5C, 0x28, 0xB4, 0x6C};
+uint8_t broadcastAddress[] = {0xCC, 0x7B, 0x5C, 0x27, 0x88, 0x24};
 
 // Structure example to send data
 // Must match the receiver structure
@@ -38,7 +38,7 @@ esp_now_peer_info_t peerInfo;
 
 // gpio pin
 const int MQ7Sensor = 34;
-const int MAX9814Sensor = 35;
+const int MAX9814Sensor = 35; 
 
 // callback when data is sent
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status)
