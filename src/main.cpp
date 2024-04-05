@@ -12,10 +12,12 @@
 #include <WiFiType.h>
 #include "WiFi.h"
 #include "FS.h"
-#include"Adafruit_Sensor.h"
+#include "Adafruit_Sensor.h"
+#include <esp_wifi.h>
 
 // REPLACE WITH THE RECEIVER'S MAC Address
 uint8_t broadcastAddress[] = {0xCC, 0x7B, 0x5C, 0x27, 0x88, 0x24};
+#define BOARD_ID 1
 
 // Structure example to send data
 // Must match the receiver structure
@@ -24,6 +26,7 @@ typedef struct struct_message
     int id; // must be unique for each sender board
     int MQ7SensorValue;
     int MAX9814SensorValue;
+    int readingId;
 } struct_message;
 
 // Create a struct_message called myData
@@ -32,13 +35,31 @@ struct_message note1Slave;
 int MAX9814SensorValueRead;
 int MQ7SensorValueRead;
 int sendSS1 = 0;
+unsigned int readingId = 0;
+// Insert your SSID
+constexpr char WIFI_SSID[] = "AML 2.4";
+
+int32_t getWiFiChannel(const char *ssid)
+{
+    if (int32_t n = WiFi.scanNetworks())
+    {
+        for (uint8_t i = 0; i < n; i++)
+        {
+            if (!strcmp(ssid, WiFi.SSID(i).c_str()))
+            {
+                return WiFi.channel(i);
+            }
+        }
+    }
+    return 0;
+}
 
 // Create peer interface
 esp_now_peer_info_t peerInfo;
 
 // gpio pin
 const int MQ7Sensor = 34;
-const int MAX9814Sensor = 35; 
+const int MAX9814Sensor = 35;
 
 // callback when data is sent
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status)
@@ -58,6 +79,12 @@ void setup()
 
     // Set device as a Wi-Fi Station
     WiFi.mode(WIFI_STA);
+    int32_t channel = getWiFiChannel(WIFI_SSID);
+    WiFi.printDiag(Serial); // Uncomment to verify channel number before
+    esp_wifi_set_promiscuous(true);
+    esp_wifi_set_channel(channel, WIFI_SECOND_CHAN_NONE);
+    esp_wifi_set_promiscuous(false);
+    WiFi.printDiag(Serial); // Uncomment to verify channel change after
 
     // Init ESP-NOW
     if (esp_now_init() != ESP_OK)
@@ -71,6 +98,7 @@ void setup()
     esp_now_register_send_cb(OnDataSent);
 
     // Register peer
+    // esp_now_peer_info_t peerInfo;
     memcpy(peerInfo.peer_addr, broadcastAddress, 6);
     peerInfo.channel = 0;
     peerInfo.encrypt = false;
@@ -94,7 +122,6 @@ void loop()
     note1Slave.MQ7SensorValue = MQ7SensorValueRead;
     MAX9814SensorValueRead = analogRead(MAX9814Sensor);
     note1Slave.MAX9814SensorValue = MAX9814SensorValueRead;
-
 
     Serial.print("MQ7SensorValue: ");
     Serial.println(MQ7SensorValueRead);
